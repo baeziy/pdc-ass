@@ -1,4 +1,4 @@
-![alt text](https://github.com/baeziy/pdc-ass/ass02/image.png?raw=true)
+![Screenshot](image.png)
 # Assignment 02 Report
 
 This report provides an analysis of a program designed to determine whether points lie inside various geometric shapes. The program consists of three main files: `seq.py`, `mul.py`, and `main.py`. The purpose of this analysis is to evaluate the performance and speedup achieved by the multithreaded version of the program compared to the sequential version.
