@@ -1,5 +1,3 @@
-
-import matplotlib.pyplot as plt
 import math
 
 def is_inside_polygon(edges, xp, yp):

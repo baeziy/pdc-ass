@@ -1,6 +1,7 @@
 import threading
 import math
 
+# using ray casting algorithm
 def is_inside_polygon(edges, xp, yp):
     cnt = 0
     for edge in edges:
@@ -45,19 +46,20 @@ def is_inside_semiCircle(xp, yp, center=(1,1), radius=math.sqrt(2)):
 
     return True
 
-def check_point(edgesA, edgesB, x, y):
-    if is_inside_convexQuadilateral(edgesA, x, y):
-        global countA
-        countA += 1
-    elif is_inside_nonConvexQuadilateral(edgesB, x, y):
-        global countB
-        countB += 1
-    elif is_inside_semiCircle(x, y):
-        global countC
-        countC += 1
-    else:
-        global countNone
-        countNone += 1
+def check_point(edgesA, edgesB, coordinates):
+    for x, y in coordinates:
+        if is_inside_convexQuadilateral(edgesA, x, y):
+            global countA
+            countA += 1
+        elif is_inside_nonConvexQuadilateral(edgesB, x, y):
+            global countB
+            countB += 1
+        elif is_inside_semiCircle(x, y):
+            global countC
+            countC += 1
+        else:
+            global countNone
+            countNone += 1
 
 def main():
     polygonA = [(-2, -0.5), (-2.5, -2.5), (0.5, -2), (0,0)]
@@ -70,12 +72,46 @@ def main():
     f = open("points.txt")
 
     threads = []
+    pointsT1 = []
+    pointsT2 = []
+    pointsT3 = []
+    pointsT4 = []
+    pCount = 0
     for line in f:
         x, y = map(float, line.split())
-        thread = threading.Thread(target=check_point, args=(edgesA, edgesB, x, y))
-        thread.start()
-        threads.append(thread)
+        if pCount <= 2500:
+            pointsT1.append((x,y))
+            pCount += 1
+        elif pCount <= 5000:
+            pointsT2.append((x,y))
+            pCount += 1
+        elif pCount <= 7500:
+            pointsT3.append((x,y))
+            pCount += 1
+        else:
+            pointsT4.append((x,y))
+            pCount += 1
 
+    # each thread will check 2500 points
+    for i in range(4):
+        if i == 0:
+            thread = threading.Thread(target=check_point, args=(edgesA, edgesB, pointsT1))
+            thread.start()
+            threads.append(thread)
+        elif i == 1:
+            thread = threading.Thread(target=check_point, args=(edgesA, edgesB, pointsT2))
+            thread.start()
+            threads.append(thread)
+        elif i == 2:
+            thread = threading.Thread(target=check_point, args=(edgesA, edgesB, pointsT3))
+            thread.start()
+            threads.append(thread)
+        else:
+            thread = threading.Thread(target=check_point, args=(edgesA, edgesB, pointsT4))
+            thread.start()
+            threads.append(thread)
+    
+    f.close()
     # wait for all threads to complete
     for thread in threads:
         thread.join()
