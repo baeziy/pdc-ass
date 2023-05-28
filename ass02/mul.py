@@ -1,7 +1,6 @@
-
-import matplotlib.pyplot as plt
+import threading
 import math
-import time
+
 def is_inside_polygon(edges, xp, yp):
     cnt = 0
     for edge in edges:
@@ -22,7 +21,10 @@ def is_inside_polygon(edges, xp, yp):
                     return True
     return cnt % 2 == 1
 
-
+countA = 0
+countB = 0
+countC = 0
+countNone = 0
 def is_inside_convexQuadilateral(edges, xp, yp):
     return is_inside_polygon(edges, xp, yp)
 
@@ -43,6 +45,20 @@ def is_inside_semiCircle(xp, yp, center=(1,1), radius=math.sqrt(2)):
 
     return True
 
+def check_point(edgesA, edgesB, x, y):
+    if is_inside_convexQuadilateral(edgesA, x, y):
+        global countA
+        countA += 1
+    elif is_inside_nonConvexQuadilateral(edgesB, x, y):
+        global countB
+        countB += 1
+    elif is_inside_semiCircle(x, y):
+        global countC
+        countC += 1
+    else:
+        global countNone
+        countNone += 1
+
 def main():
     polygonA = [(-2, -0.5), (-2.5, -2.5), (0.5, -2), (0,0)]
     polygonB = [(-2.5, 1.4), (-1,1), (0.5, 1.4), (-1, -1)]
@@ -50,32 +66,26 @@ def main():
     polygonB.append(polygonB[0])
     edgesA = list(zip(polygonA, polygonA[1:] + polygonA[:1]))
     edgesB = list(zip(polygonB, polygonB[1:] + polygonB[:1]))
-    
+
     f = open("points.txt")
+
+    threads = []
     for line in f:
         x, y = map(float, line.split())
-        if is_inside_convexQuadilateral(edgesA, x, y):
-            print(f"Point [{x}, {y}] is inside A")
-        elif is_inside_nonConvexQuadilateral(edgesB, x, y):
-            print(f"Point [{x}, {y}] is inside B")
-        elif is_inside_semiCircle(x, y):
-            print(f"Point [{x}, {y}] is inside C")
-        else:
-            print(f"Point [{x}, {y}] is outside all")
+        thread = threading.Thread(target=check_point, args=(edgesA, edgesB, x, y))
+        thread.start()
+        threads.append(thread)
+
+    # wait for all threads to complete
+    for thread in threads:
+        thread.join()
+
+    print("~~~~~~ Multithreaded ~~~~~~")
+    print(f"Count A: {countA}")
+    print(f"Count B: {countB}")
+    print(f"Count C: {countC}")
+    print(f"Count None: {countNone}")
 
 
-if __name__ == '__main__':
+main()
 
-   
-
-# polygon = random_polygon(num_points=4)
-# polygon = [(-2, -0.5), (-2.5, -2.5), (0.5, -2), (0,0)]
-# polygon = [(-2.5, 1.4), (-1,1), (0.5, 1.4), (-1, -1)]
-# polygon.append(polygon[0])
-# edges = list(zip(polygon, polygon[1:] + polygon[:1]))
-# plt.figure(figsize=(10, 10))
-# plt.gca().set_aspect("equal")
-# xs, ys = zip(*polygon)
-# plt.gcf().canvas.mpl_connect('button_press_event', onclick)
-# plt.plot(xs, ys, "b-", linewidth=0.8)
-# plt.show()
